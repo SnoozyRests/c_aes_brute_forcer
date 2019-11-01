@@ -72,7 +72,6 @@ unsigned char* decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned c
     return plaintext;
 }
 
-
 size_t calcDecodeLength(char* b64input) {
     size_t len = strlen(b64input), padding = 0;
 
@@ -111,13 +110,12 @@ void initAES(const unsigned char *pass, unsigned char* salt, unsigned char* key,
 }
 
 
+
 int main (void)
 {
     // This is the string Hello, World! encrypted using aes-256-cbc with the
     // pasword 12345
-    char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T/8T2RLD"
-                                        "rnsf9WVPPGqB/rVgfRMhDmLnNsgp1Ukh8ygs+j0cgCYO4O3J5EMVb7utga9xSFSX"
-                                        "e0ZsrfngA+ftf4OL6jOioA==";
+    char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T/8T2RLDrnsf9WVPPGqB/rVgfRMhDmLnNsgp1Ukh8ygs+j0cgCYO4O3J5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     //This is the top seret message in parallel computing! Please keep it in a safe place.
     int decryptedtext_len, ciphertext_len;
 
@@ -136,12 +134,13 @@ int main (void)
 
     unsigned char plainpassword[] = "00000";
     unsigned char* password = &plainpassword[0];
-    int password_length = sizeof(plainpassword);
+    int password_length = 5;
+
     const char *alphabet = "abcdefghijklmnopqrstuvwxyz"
 		       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 		       "0123456789";
 
-    clock_t begin = clock();
+    //clock_t begin = clock();
     // retrive the slater from ciphertext (binary)
     if (strncmp((const char*)ciphertext,"Salted__",8) == 0) {
         memcpy(salt,&ciphertext[8],8);
@@ -162,17 +161,13 @@ int main (void)
 
                 printf("%s\n", password);
 
-                //initAES(password, salt, key, iv);
-                //unsigned char* result = decrypt(ciphertext, cipher_len, key, iv);
-                //if (success == 1){
-                   //printf("%s\n", result);
-                    //exit(0);
-                //}
-                //else {printf("unsuccessful!\n");}
+                initAES(password, salt, key, iv);
+                unsigned char* result = decrypt(ciphertext, cipher_len, key, iv);
+                if (success == 1){
+                    printf("%s\n", result);
+                    return 0;
+                } else {printf("unsuccessful!\n");}
             }
-
-    
-    
 
     /**password = 48+1;
     *(password+1) = 48+2;
@@ -193,9 +188,9 @@ int main (void)
     
     EVP_cleanup();
     ERR_free_strings();
-    clock_t end = clock();
-    double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("\n%f", time_spent);
+    //clock_t end = clock();
+    //double time_spent = (double)(end - begin) / CLOCKS_PER_SEC;
+    //printf("\n%f", time_spent);
 
     return 0;
 }
