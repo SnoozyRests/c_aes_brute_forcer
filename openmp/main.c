@@ -113,8 +113,7 @@ void initAES(const unsigned char *pass, unsigned char* salt, unsigned char* key,
 
 int main (void)
 {
-    // This is the string Hello, World! encrypted using aes-256-cbc with the
-    // pasword 12345
+
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T/8T2RLDrnsf9WVPPGqB/rVgfRMhDmLnNsgp1Ukh8ygs+j0cgCYO4O3J5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     //This is the top seret message in parallel computing! Please keep it in a safe place.
     int decryptedtext_len, ciphertext_len;
@@ -128,7 +127,8 @@ int main (void)
     ERR_load_crypto_strings();
     
     Base64Decode(ciphertext_base64, &ciphertext, &cipher_len);
-
+    //printf("%s\n", ciphertext);
+    //return 0;
     unsigned char key[16];
     unsigned char iv[16];
 
@@ -136,9 +136,8 @@ int main (void)
     unsigned char* password = &plainpassword[0];
     int password_length = 5;
 
-    const char *alphabet = "abcdefghijklmnopqrstuvwxyz"
-		       "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-		       "0123456789";
+    //const char *alphabet = "0123456789abcdefghijklmnopqrstuvwxyz"
+		       //"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     //clock_t begin = clock();
     // retrive the slater from ciphertext (binary)
@@ -148,16 +147,22 @@ int main (void)
         cipher_len -= 16;
     }
     // generate key and iv
-    for(int i=0; i<62; i++)
-        for(int j=0; j<62; j++)
-            for(int k=0; k<62; k++)
-                for(int l = 0; l < 62; l++)
-                    for(int m = 0; m < 62; m++){
-                        *password = alphabet[i];
-                        *(password+1) = alphabet[j];
-                        *(password+2) = alphabet[k];
-                        *(password+3) = alphabet[l];
-                        *(password+4) = alphabet[m];
+    for(int i = 0; i < 72; i++)
+        for(int j = 0; j < 72; j++)
+            for(int k = 0; k < 72; k++)
+                for(int l = 0; l < 72; l++)
+                    for(int m = 0; m < 72; m++){
+                        //*password = alphabet[i];
+                        //*(password+1) = alphabet[j];
+                        //*(password+2) = alphabet[k];
+                        //*(password+3) = alphabet[l];
+                        //*(password+4) = alphabet[m];
+
+                        *password = 48 + i;
+                        *(password+1) = 48 + j;
+                        *(password+2) = 48 + k;
+                        *(password+3) = 48 + l;
+                        *(password+4) = 48 + m;
 
                 printf("%s\n", password);
 
@@ -166,7 +171,9 @@ int main (void)
                 if (success == 1){
                     printf("%s\n", result);
                     return 0;
-                } else {printf("unsuccessful!\n");}
+                } //else {
+                    //printf("unsuccessful!\n");
+                //}
             }
 
     /**password = 48+1;
