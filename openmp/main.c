@@ -8,8 +8,7 @@
 
 int success = 0;
 
-void handleOpenSSLErrors(void)
-{
+void handleOpenSSLErrors(void){
     ERR_print_errors_fp(stderr);
     abort();
 }
@@ -83,8 +82,6 @@ size_t calcDecodeLength(char* b64input) {
 }
 
 void Base64Decode( char* b64message, unsigned char** buffer, size_t* length) {
-
-    
     BIO *bio, *b64;  // A BIO is an I/O strean abstraction
 
     int decodeLen = calcDecodeLength(b64message);
@@ -127,8 +124,6 @@ int main (void)
     ERR_load_crypto_strings();
     
     Base64Decode(ciphertext_base64, &ciphertext, &cipher_len);
-    //printf("%s\n", ciphertext);
-    //return 0;
     unsigned char key[16];
     unsigned char iv[16];
 
@@ -136,42 +131,42 @@ int main (void)
     unsigned char* password = &plainpassword[0];
     int password_length = 5;
 
-    //const char *alphabet = "0123456789abcdefghijklmnopqrstuvwxyz"
-		       //"ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const char *alphabet = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
     //clock_t begin = clock();
     // retrive the slater from ciphertext (binary)
     if (strncmp((const char*)ciphertext,"Salted__",8) == 0) {
-        memcpy(salt,&ciphertext[8],8);
+        memcpy(salt, &ciphertext[8],8);
         ciphertext += 16;
         cipher_len -= 16;
     }
+    
     // generate key and iv
-    for(int i = 0; i < 72; i++)
-        for(int j = 0; j < 72; j++)
-            for(int k = 0; k < 72; k++)
-                for(int l = 0; l < 72; l++)
-                    for(int m = 0; m < 72; m++){
-                        //*password = alphabet[i];
-                        //*(password+1) = alphabet[j];
-                        //*(password+2) = alphabet[k];
-                        //*(password+3) = alphabet[l];
-                        //*(password+4) = alphabet[m];
+    for(int i = 0; i < 60; i++)
+        for(int j = 0; j < 60; j++)
+            for(int k = 0; k < 60; k++)
+                for(int l = 0; l < 60; l++)
+                    for(int m = 0; m < 60; m++){
+                        *password = alphabet[i];
+                        *(password+1) = alphabet[j];
+                        *(password+2) = alphabet[k];
+                        *(password+3) = alphabet[l];
+                        *(password+4) = alphabet[m];
 
-                        *password = 48 + i;
-                        *(password+1) = 48 + j;
-                        *(password+2) = 48 + k;
-                        *(password+3) = 48 + l;
-                        *(password+4) = 48 + m;
+                        //*password = 48 + i;
+                        //*(password+1) = 48 + j;
+                        //*(password+2) = 48 + k;
+                        //*(password+3) = 48 + l;
+                        //*(password+4) = 48 + m;
 
                 printf("%s\n", password);
 
-                initAES(password, salt, key, iv);
-                unsigned char* result = decrypt(ciphertext, cipher_len, key, iv);
-                if (success == 1){
-                    printf("%s\n", result);
-                    return 0;
-                } //else {
+                //initAES(password, salt, key, iv);
+                //unsigned char* result = decrypt(ciphertext, cipher_len, key, iv);
+                //if (success == 1){
+                    //printf("%s\n", result);
+                    //return 0;
+                //} else {
                     //printf("unsuccessful!\n");
                 //}
             }
