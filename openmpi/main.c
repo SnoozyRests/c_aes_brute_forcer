@@ -3,7 +3,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <regex.h>
-#include <time.h>
 #include "b64.c"
 #include "aes.c"
 
@@ -16,7 +15,6 @@ int checkPlaintext(char* plaintext, char* result){
 
 int main (void)
 {
-    clock_t start = clock(), end;
     // This is the string Hello, World! encrypted using aes-256-cbc with the
     // pasword 12345
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T"
@@ -24,12 +22,9 @@ int main (void)
                                         "5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     char* plaintext = "This is the top seret message in parallel computing!"
                         "Please keep it in a safe place.";
-    //char dict[] = "0123456789"
-                    //"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    //"abcdefghijklmnopqrstuvwxyz";
-    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz"
-                    "0123456789";
+    char dict[] = "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -62,7 +57,7 @@ int main (void)
     dict_len = strlen(dict);
     
     // generate key and iv
-    //printf("%s", plaintext);
+    printf("%s", plaintext);
     
     
     for(int i=0; i<dict_len; i++)
@@ -76,7 +71,7 @@ int main (void)
                         *(password+3) = dict[l];
                         *(password+4) = dict[m];
 
-                        //printf("%s\n", password);
+                        printf("%s\n", password);
 
                         initAES(password, salt, key, iv);
                         unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
@@ -84,8 +79,6 @@ int main (void)
                         if (success == 1){
                             if(checkPlaintext(plaintext, result)==0){
                                 printf("%s\n", result);
-                                end = clock();
-                                printTime(start, end);
                                 return 0;
                             }
 
@@ -102,13 +95,6 @@ int main (void)
     EVP_cleanup();
     ERR_free_strings();
 
-    end = clock();
-    printTime(start, end);
 
     return 0;
-}
-
-void printTime(clock_t start, clock_t end){
-    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("\nTime spent: %f\n", time_spent);
 }
