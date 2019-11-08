@@ -1,5 +1,6 @@
 #include <openssl/ssl.h>
 #include <openssl/err.h>
+#include <omp.h>
 #include <string.h>
 #include <stdio.h>
 #include <regex.h>
@@ -7,7 +8,11 @@
 #include "b64.c"
 #include "aes.c"
 
+//916132832
+#define sp 14776336
+
 int success = 0;
+void printTime(clock_t, clock_t);
 
 int checkPlaintext(char* plaintext, char* result){
     int length = 10; // we just check the first then characters
@@ -16,6 +21,7 @@ int checkPlaintext(char* plaintext, char* result){
 
 int main (void)
 {
+
     clock_t start = clock(), end;
     // This is the string Hello, World! encrypted using aes-256-cbc with the
     // pasword 12345
@@ -24,12 +30,12 @@ int main (void)
                                         "5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     char* plaintext = "This is the top seret message in parallel computing!"
                         "Please keep it in a safe place.";
-    //char dict[] = "0123456789"
-                    //"ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    //"abcdefghijklmnopqrstuvwxyz";
-    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz"
-                    "0123456789";
+    char dict[] = "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz";
+    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    //"abcdefghijklmnopqrstuvwxyz"
+                    //"0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -63,40 +69,44 @@ int main (void)
     
     // generate key and iv
     //printf("%s", plaintext);
-    
-    
-    for(int i=0; i<dict_len; i++)
-        for(int j=0; j<dict_len; j++)
-            for(int k=0; k<dict_len; k++)
-                for(int l=0; l<dict_len; l++)
-                    for(int m=0; m<dict_len; m++){
-                        *password = dict[i];
-                        *(password+1) = dict[j];
-                        *(password+2) = dict[k];
-                        *(password+3) = dict[l];
-                        *(password+4) = dict[m];
+    omp_set_num_threads(4);
 
-                        //printf("%s\n", password);
+    //#pragma omp parallel
+    //{
+        int id;
+        //int numofthreads = omp_get_num_threads();
+        #pragma omp parallel for collapse(5)
+        for(int i = 0; i < dict_len; i++)
+            for(int j = 0; j < dict_len; j++)
+                for(int k = 0; k < dict_len; k++)
+                    for(int l = 0; l < dict_len; l++)
+                        for(int m = 0; m < dict_len; m++){
+                            id = omp_get_thread_num();
+                            *password = dict[i];
+                            *(password+1) = dict[j];
+                            *(password+2) = dict[k];
+                            *(password+3) = dict[l];
+                            *(password+4) = dict[m];
+                            printf("%s, (%d)\n", password, id);
 
-                        initAES(password, salt, key, iv);
-                        unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
-                        
-                        if (success == 1){
-                            if(checkPlaintext(plaintext, result)==0){
-                                printf("%s\n", result);
-                                end = clock();
-                                printTime(start, end);
-                                return 0;
+                            initAES(password, salt, key, iv);
+                            unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
+                            if (success == 1){
+                                if(checkPlaintext(plaintext, result) == 0){
+                                    printf("%s\n", result);
+                                    end = clock();
+                                    printTime(start, end);
+                                    exit(0);
+                                }
+
                             }
-
-                        }
                        
-                        free(result);
-                        //printf("unsuccessful!\n");
+                            free(result);
+                            //printf("unsuccessful!\n");
                         
-                    }
+                        }
+   // }
 
-            
     // Clean up
     
     EVP_cleanup();
