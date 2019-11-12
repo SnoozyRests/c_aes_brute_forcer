@@ -62,7 +62,7 @@ int main (void)
 
     dict_len = strlen(dict);
     
-    omp_set_num_threads(4);
+    omp_set_num_threads(6);
 
         int id;
         #pragma omp parallel for collapse(5)
@@ -81,6 +81,7 @@ int main (void)
 
                             initAES(password, salt, key, iv);
                             unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
+                            
                             if (success == 1){
                                 if(checkPlaintext(plaintext, result) == 0){
                                     printf("%s\n", result);
@@ -102,8 +103,8 @@ int main (void)
     EVP_cleanup();
     ERR_free_strings();
 
-    end = clock();
-    printTime(start, end);
+    //end = clock();
+    //printTime(start, end);
 
     return 0;
 }
@@ -112,3 +113,4 @@ void printTime(clock_t start, clock_t end){
     double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
     printf("\nTime spent: %f\n", time_spent);
 }
+
