@@ -16,8 +16,7 @@ int checkPlaintext(char* plaintext, char* result){
     return strncmp(plaintext, result, length);
 }
 
-int main (void)
-{
+int main (void){
 
     clock_t start = clock(), end;
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T"
@@ -27,12 +26,12 @@ int main (void)
                         "Please keep it in a safe place.";
     // pasword 12Dec
 
-    char dict[] = "0123456789"
-                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz";
-    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz"
-    //                "0123456789";
+    //char dict[] = "0123456789"
+    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz";
+    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -71,12 +70,14 @@ int main (void)
                 for(int k = 0; k < dict_len; k++)
                     for(int l = 0; l < dict_len; l++)
                         for(int m = 0; m < dict_len; m++){
-                            id = omp_get_thread_num();
+                            
                             *password = dict[i];
                             *(password+1) = dict[j];
                             *(password+2) = dict[k];
                             *(password+3) = dict[l];
                             *(password+4) = dict[m];
+
+                            id = omp_get_thread_num();
                             printf("%s, (%d)\n", password, id);
 
                             initAES(password, salt, key, iv);
@@ -89,9 +90,7 @@ int main (void)
                                     printTime(start, end);
                                     exit(0);
                                 }
-
                             }
-                       
                             free(result);
                             //printf("unsuccessful!\n");
                         
