@@ -26,12 +26,12 @@ int main (void){
                         "Please keep it in a safe place.";
     // pasword 12Dec
 
-    char dict[] = "0123456789"
-                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz";
-    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz"
-    //                "0123456789";
+    //char dict[] = "0123456789"
+    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz";
+    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
