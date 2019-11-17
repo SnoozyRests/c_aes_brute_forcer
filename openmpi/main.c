@@ -5,6 +5,8 @@
 #include <regex.h>
 #include "b64.c"
 #include "aes.c"
+#include <sys/time.h>
+#include <mpi/mpi.h>
 
 int success = 0;
 
@@ -13,8 +15,14 @@ int checkPlaintext(char* plaintext, char* result){
     return strncmp(plaintext, result, length);
 }
 
-int main (void)
+int main (int argc, char **argv)
 {
+    int myrank, rbuf, sbuf, count = 1, flag;
+    MPI_Status status;
+    MPI_Request req;
+    clock_t start = clock(), end;
+    struct timeval start1, end1;
+    gettimeofday(&start1, NULL);
     // This is the string Hello, World! encrypted using aes-256-cbc with the
     // pasword 12345
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T"
@@ -25,6 +33,9 @@ int main (void)
     char dict[] = "0123456789"
                     "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
                     "abcdefghijklmnopqrstuvwxyz";
+    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz"
+    //                "0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -56,30 +67,44 @@ int main (void)
 
     dict_len = strlen(dict);
     
-    // generate key and iv
-    printf("%s", plaintext);
-    
-    
-    for(int i=0; i<dict_len; i++)
+    MPI_Init(&argc, &argv);
+    MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+    MPI_Irecv(&rbuf, count, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &req);
+    printf("Posted Recieve for %d\n", myrank);
+
         for(int j=0; j<dict_len; j++)
             for(int k=0; k<dict_len; k++)
                 for(int l=0; l<dict_len; l++)
                     for(int m=0; m<dict_len; m++){
-                        *password = dict[i];
+                        MPI_Test(&req, &flag, &status);
+                        if(flag == 1){
+                            printf("Another process has found the key, exiting...\n");
+                            MPI_Finalize();
+                        }
+                        *password = dict[myrank];
                         *(password+1) = dict[j];
                         *(password+2) = dict[k];
                         *(password+3) = dict[l];
                         *(password+4) = dict[m];
 
-                        printf("%s\n", password);
+                        //printf("%s\n", password);
 
                         initAES(password, salt, key, iv);
                         unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
                         
                         if (success == 1){
                             if(checkPlaintext(plaintext, result)==0){
+                                //MPI_Send(&sbuf, count, MPI_INT, myrank, 0, MPI_COMM_WORLD);
+                                //sleep(10);
+                                MPI_Bcast(&sbuf, count, MPI_INT, myrank, MPI_COMM_WORLD);
+
                                 printf("%s\n", result);
-                                return 0;
+                                gettimeofday(&end1, NULL);
+                                double timetaken = end1.tv_sec + end1.tv_usec / 1e6 - start1.tv_sec  - start1.tv_usec / 1e6;
+                                printf("\nTime spent: %f\n", timetaken);
+                                //printTime(start, end);
+
+                                MPI_Finalize();
                             }
 
                         }
@@ -92,9 +117,10 @@ int main (void)
             
     // Clean up
     
-    EVP_cleanup();
-    ERR_free_strings();
+    MPI_Finalize();
+}
 
-
-    return 0;
+void printTime(clock_t start, clock_t end){
+    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
+    printf("\nTime spent: %f\n", time_spent);
 }
