@@ -7,3 +7,6 @@ main.o: main.c
 
 clean:
 	rm *.o output
+
+run:
+	./output

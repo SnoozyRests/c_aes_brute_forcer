@@ -17,7 +17,7 @@ int checkPlaintext(char* plaintext, char* result){
 
 int main (int argc, char **argv)
 {
-    int myrank, rbuf, sbuf, count = 1, flag;
+    int myrank, rbuf, sbuf, count = 1, flag, err;
     MPI_Status status;
     MPI_Request req;
     clock_t start = clock(), end;
@@ -30,12 +30,12 @@ int main (int argc, char **argv)
                                         "5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     char* plaintext = "This is the top seret message in parallel computing!"
                         "Please keep it in a safe place.";
-    char dict[] = "0123456789"
-                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz";
-    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz"
-    //                "0123456789";
+    //char dict[] = "0123456789"
+    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz";
+    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -70,7 +70,7 @@ int main (int argc, char **argv)
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
     MPI_Irecv(&rbuf, count, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &req);
-    printf("Posted Recieve for %d\n", myrank);
+    //printf("Posted Recieve for %d\n", myrank);
 
         for(int j=0; j<dict_len; j++)
             for(int k=0; k<dict_len; k++)
@@ -94,17 +94,16 @@ int main (int argc, char **argv)
                         
                         if (success == 1){
                             if(checkPlaintext(plaintext, result)==0){
-                                //MPI_Send(&sbuf, count, MPI_INT, myrank, 0, MPI_COMM_WORLD);
-                                //sleep(10);
+
                                 MPI_Bcast(&sbuf, count, MPI_INT, myrank, MPI_COMM_WORLD);
 
                                 printf("%s\n", result);
                                 gettimeofday(&end1, NULL);
                                 double timetaken = end1.tv_sec + end1.tv_usec / 1e6 - start1.tv_sec  - start1.tv_usec / 1e6;
                                 printf("\nTime spent: %f\n", timetaken);
-                                //printTime(start, end);
-
-                                MPI_Finalize();
+                                
+                                MPI_Abort(MPI_COMM_WORLD, err);
+                                exit(0);
                             }
 
                         }
@@ -118,9 +117,4 @@ int main (int argc, char **argv)
     // Clean up
     
     MPI_Finalize();
-}
-
-void printTime(clock_t start, clock_t end){
-    double time_spent = (double)(end - start) / CLOCKS_PER_SEC;
-    printf("\nTime spent: %f\n", time_spent);
 }
