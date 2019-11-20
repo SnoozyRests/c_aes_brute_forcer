@@ -62,7 +62,6 @@ int main (void){
     dict_len = strlen(dict);
     
     omp_set_num_threads(6);
-
         int id;
         #pragma omp parallel for collapse(5)
         for(int i = 0; i < dict_len; i++)
@@ -85,6 +84,7 @@ int main (void){
                             
                             if (success == 1){
                                 if(checkPlaintext(plaintext, result) == 0){
+                                    printf("%s\n", password);
                                     printf("%s\n", result);
                                     end = clock();
                                     printTime(start, end);
