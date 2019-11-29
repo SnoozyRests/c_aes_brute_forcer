@@ -1,15 +1,30 @@
+/*
+    Author: Jacob John Williams
+    Program: AES128-cbc brute forcer using OpenMPI.
+    Credits: Dr Kun Wei - underlying base code.
+    Notes: Coursework for the Parallel Computing masters module at UWE. UFCFFL-15-M.
+*/
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string.h>
 #include <stdio.h>
 #include <regex.h>
-#include "b64.c"
-#include "aes.c"
+#include "../dependencies/b64.c"
+#include "../dependencies/aes.c"
 #include <sys/time.h>
 #include <mpi/mpi.h>
 
 int success = 0;
-
+/*
+    Function: checkPlaintext
+    Operation: Compares the recently acquired result to the target plaintext.
+    Inputs: char* plaintext - pointer to target plaintext
+            char* result - pointer to result of decryption attempt.
+    Output: return strncmp(plaintext, result, length) - value < 0 : plaintext > result
+                                                        value > 0 : plaintext < result
+                                                        value = 0 : plaintext = result
+    Notes: Complies with the standards of a Known-Plaintext-Attack. 
+*/
 int checkPlaintext(char* plaintext, char* result){
     int length = 10; // we just check the first then characters
     return strncmp(plaintext, result, length);
@@ -30,12 +45,12 @@ int main (int argc, char **argv)
                                         "5EMVb7utga9xSFSXe0ZsrfngA+ftf4OL6jOioA==\n";
     char* plaintext = "This is the top seret message in parallel computing!"
                         "Please keep it in a safe place.";
-    //char dict[] = "0123456789"
-    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz";
-    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz"
-                    "0123456789";
+    char dict[] = "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz";
+    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz"
+    //                "0123456789";
     
     int decryptedtext_len, ciphertext_len, dict_len;
 
@@ -64,7 +79,6 @@ int main (int argc, char **argv)
         cipher_len -= 16;
     
     }
-
     dict_len = strlen(dict);
     
     MPI_Init(&argc, &argv);
@@ -97,7 +111,7 @@ int main (int argc, char **argv)
 
                                 MPI_Bcast(&sbuf, count, MPI_INT, myrank, MPI_COMM_WORLD);
 
-                                printf("%s\n", result);
+                                printf("%s\n%s", result, password);
                                 gettimeofday(&end1, NULL);
                                 double timetaken = end1.tv_sec + end1.tv_usec / 1e6 - start1.tv_sec  - start1.tv_usec / 1e6;
                                 printf("\nTime spent: %f\n", timetaken);
@@ -115,6 +129,5 @@ int main (int argc, char **argv)
 
             
     // Clean up
-    
     MPI_Finalize();
 }

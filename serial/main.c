@@ -1,22 +1,37 @@
+/*
+    Author: Jacob John Williams
+    Program: AES128-cbc brute forcer.
+    Credits: Dr Kun Wei - underlying base code.
+    Notes: Coursework for the Parallel Computing masters module at UWE. UFCFFL-15-M.
+*/
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string.h>
 #include <stdio.h>
 #include <regex.h>
 #include <time.h>
-#include "b64.c"
-#include "aes.c"
+#include "../dependencies/b64.c"
+#include "../dependencies/aes.c"
 
 int success = 0;
 void printTime(clock_t, clock_t);
 
+/*
+    Function: checkPlaintext
+    Operation: Compares the recently acquired result to the target plaintext.
+    Inputs: char* plaintext - pointer to target plaintext
+            char* result - pointer to result of decryption attempt.
+    Output: return strncmp(plaintext, result, length) - value < 0 : plaintext > result
+                                                        value > 0 : plaintext < result
+                                                        value = 0 : plaintext = result
+    Notes: Complies with the standards of a Known-Plaintext-Attack. 
+*/
 int checkPlaintext(char* plaintext, char* result){
     int length = 10; 
     return strncmp(plaintext, result, length);
 }
 
 int main (void){
-
     clock_t start = clock(), end;
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T"
                                         "/8T2RLDrnsf9WVPPGqB/rVgfRMhDmLnNsgp1Ukh8ygs+j0cgCYO4O3J"

@@ -1,3 +1,9 @@
+/*
+    Author: Dr Kun Wei
+    Program: AES-128-CBC decryption functions.
+    Credits: Jacob J Williams - Refactoring
+    Notes: Utilised in coursework for the Parallel Computing masters module at UWE. UFCFFL-15-M.
+*/
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string.h>
@@ -18,7 +24,7 @@ void initAES(const unsigned char *pass, unsigned char* salt, unsigned char* key,
     EVP_BytesToKey(EVP_aes_128_cbc(), EVP_sha1(), salt, pass, strlen(pass), 1, key, iv);
 }
 
-unsigned char* decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, int *success ){
+unsigned char* decrypt(unsigned char *ciphertext, int ciphertext_len, unsigned char *key, unsigned char *iv, int *success){
 
     EVP_CIPHER_CTX *ctx;
     unsigned char *plaintexts;

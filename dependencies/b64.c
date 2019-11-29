@@ -1,3 +1,9 @@
+/*
+    Author: Dr Kun Wei
+    Program: Base64 Decoding Functions.
+    Credits: Jacob J Williams - Refactoring
+    Notes: Utilised in coursework for the Parallel Computing masters module at UWE. UFCFFL-15-M.
+*/
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #include <string.h>
@@ -16,7 +22,7 @@ size_t calcDecodeLength(char* b64input) {
 void Base64Decode( char* b64message, unsigned char** buffer, size_t* length) {
 
     
-    BIO *bio, *b64;  // A BIO is an I/O strean abstraction
+    BIO *bio, *b64;
 
     int decodeLen = calcDecodeLength(b64message);
     *buffer = (unsigned char*)malloc(decodeLen + 1);
@@ -26,7 +32,6 @@ void Base64Decode( char* b64message, unsigned char** buffer, size_t* length) {
     b64 = BIO_new(BIO_f_base64());
     bio = BIO_push(b64, bio);
 
-    //BIO_set_flags(bio, BIO_FLAGS_BASE64_NO_NL); //Do not use newlines to flush buffer
     *length = BIO_read(bio, *buffer, strlen(b64message));
     BIO_free_all(bio);
 }
