@@ -23,7 +23,7 @@ int success = 0;
     Output: return strncmp(plaintext, result, length) - value < 0 : plaintext > result
                                                         value > 0 : plaintext < result
                                                         value = 0 : plaintext = result
-    Notes: Complies with the standards of a Known-Plaintext-Attack. 
+    Notes: Complies with the standards of a Known-Plaintext-Attack.
 */
 int checkPlaintext(char* plaintext, char* result){
     int length = 10;
@@ -40,14 +40,14 @@ int checkPlaintext(char* plaintext, char* result){
 */
 int main (int argc, char **argv){
     //Initialise OpenMPI specific variables, used in message passing and vector assignment.
-    int myrank, rbuf, sbuf, count = 1, flag, err;
+    int myrank, rbuf, sbuf, count = 1, flag, err, inc;
     MPI_Status status;
     MPI_Request req;
 
     //Initialise time keeping variables, clock_t only returned CPU time when using OpenMPI.
     struct timeval start1, end1;
     gettimeofday(&start1, NULL);
-    
+
     //Target Ciphertext and plaintext, Known-Plaintext-Attack standard. Target password is 12Dec.
     char* ciphertext_base64 = (char*) "U2FsdGVkX19VjPGO9qgNMHQCCUycG42mf7Ak0JMI79lPmAAu8XCmJfY4T"
                                         "/8T2RLDrnsf9WVPPGqB/rVgfRMhDmLnNsgp1Ukh8ygs+j0cgCYO4O3J"
@@ -59,14 +59,14 @@ int main (int argc, char **argv){
         Dictionary lookup varibles.
         Key : "Forward" = 0-9 / A-Z / a-z (standard ASCII order)
               "Reverse" = A-Z / a-z / 0-9 (puts target towards end of vector)
-    */              
-    char dict[] = "0123456789"
-                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz"; //Forward
-    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz"
-    //                "0123456789"; //Reverse
-    
+    */
+    //char dict[] = "0123456789"
+    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz"; //Forward
+    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz"
+                    "0123456789"; //Reverse
+
     //Property variables.
     int decryptedtext_len, ciphertext_len, dict_len;
     size_t cipher_len;
@@ -74,10 +74,10 @@ int main (int argc, char **argv){
     //Variable for unsalted ciphertext, and the extracted salt.
     unsigned char* ciphertext;
     unsigned char salt[8];
-    
+
     //Load libcrypto error strings.
     ERR_load_crypto_strings();
-    
+
     //Decode from base64 "main.c -> b64.c -> main.c"
     Base64Decode(ciphertext_base64, &ciphertext, &cipher_len);
 
@@ -85,7 +85,7 @@ int main (int argc, char **argv){
     unsigned char key[16];
     unsigned char iv[16];
 
-    //Define password length.    
+    //Define password length.
     unsigned char plainpassword[] = "00000";
     unsigned char* password = &plainpassword[0];
     int password_length = 3;
@@ -99,19 +99,21 @@ int main (int argc, char **argv){
 
     //define dictionary length for loops.
     dict_len = strlen(dict);
-    
+
     //Initialise OpenMPI process, get assigned rank in default communication channel.
     MPI_Init(&argc, &argv);
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+    MPI_Comm_size(MPI_COMM_WORLD, &inc);
 
     //Post recieves, fufilled by process that finds target.
     MPI_Irecv(&rbuf, count, MPI_INT, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &req);
 
     //Four for loops, determine value of password characters position, 1,2,3,4
-    for(int j=0; j<dict_len; j++){
+    for(int i = myrank; i < dict_len; i = i + inc){
+      for(int j=0; j<dict_len; j++){
         for(int k=0; k<dict_len; k++){
-            for(int l=0; l<dict_len; l++){
-                for(int m=0; m<dict_len; m++){
+          for(int l=0; l<dict_len; l++){
+            for(int m=0; m<dict_len; m++){
 
                     //check if another process has broadcasted that it has found the target.
                     MPI_Test(&req, &flag, &status);
@@ -119,25 +121,26 @@ int main (int argc, char **argv){
                         printf("Another process has found the key, exiting...\n");
                         MPI_Finalize();
                     }
-                    
+
                     //Password character at postion 0 determined by rank.
-                    *password = dict[myrank];
+                    *password = dict[i];
                     *(password+1) = dict[j];
                     *(password+2) = dict[k];
                     *(password+3) = dict[l];
                     *(password+4) = dict[m];
+                    //printf("%s\n", password);
 
                     //Initialise and attempt AES decryption.
                     initAES(password, salt, key, iv);
                     unsigned char* result = decrypt(ciphertext, cipher_len, key, iv, &success);
-                    
+
                     //test success value returned by the decrypt AES function.
                     if (success == 1){
                         //Compare decryption attempt and target plaintext (sometimes success value can return false positives).
                         if(checkPlaintext(plaintext, result)==0){
 
                             MPI_Bcast(&sbuf, count, MPI_INT, myrank, MPI_COMM_WORLD);
-                            
+
                             //print results.
                             printf("%s\n%s", result, password);
 
@@ -145,8 +148,8 @@ int main (int argc, char **argv){
                             gettimeofday(&end1, NULL);
                             double timetaken = end1.tv_sec + end1.tv_usec / 1e6 - start1.tv_sec  - start1.tv_usec / 1e6;
                             printf("\nTime spent: %f\n", timetaken);
-                            
-                            /* 
+
+                            /*
                                 MPI_Abort kills all processes related to the one that calls it
                                 Its brutish and can cause data loss, but the process calling it in this case has already found the target.
                             */
@@ -155,13 +158,19 @@ int main (int argc, char **argv){
                         }
                     }
                     //free result memeory (program previously seg faulted due to compounding memory usage).
-                    free(result);     
+                    free(result);
+
+                    //Seg fault catcher, if the target is towards the end, i may increment beyond its bounds.
+                    if((i + inc) > dict_len){
+                      MPI_Barrier(MPI_COMM_WORLD);
+                    }
                 }
             }
         }
     }
+  }
 
-            
+
     // Clean up
     EVP_cleanup();
     ERR_free_strings();

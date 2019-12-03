@@ -9,7 +9,7 @@ clean:
 	rm *.o output
 
 test:
-	mpirun -np 2 output
+	mpirun -np 62 output
 
 run:
-	mpirun -np 62 output
+	mpirun -np 4 output
