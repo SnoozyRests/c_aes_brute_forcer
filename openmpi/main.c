@@ -60,12 +60,12 @@ int main (int argc, char **argv){
         Key : "Forward" = 0-9 / A-Z / a-z (standard ASCII order)
               "Reverse" = A-Z / a-z / 0-9 (puts target towards end of vector)
     */
-    //char dict[] = "0123456789"
-    //                "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-    //                "abcdefghijklmnopqrstuvwxyz"; //Forward
-    char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-                    "abcdefghijklmnopqrstuvwxyz"
-                    "0123456789"; //Reverse
+    char dict[] = "0123456789"
+                    "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+                    "abcdefghijklmnopqrstuvwxyz"; //Forward
+    //char dict[] =  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+    //                "abcdefghijklmnopqrstuvwxyz"
+    //                "0123456789"; //Reverse
 
     //Property variables.
     int decryptedtext_len, ciphertext_len, dict_len;
@@ -128,7 +128,6 @@ int main (int argc, char **argv){
                     *(password+2) = dict[k];
                     *(password+3) = dict[l];
                     *(password+4) = dict[m];
-                    //printf("%s\n", password);
 
                     //Initialise and attempt AES decryption.
                     initAES(password, salt, key, iv);
